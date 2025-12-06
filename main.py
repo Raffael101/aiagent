@@ -11,7 +11,13 @@ if api_key is None:
     raise RuntimeError("API key missing!")
 client = genai.Client(api_key=api_key)
 response = client.models.generate_content(model="gemini-2.5-flash", contents=content)
-print(response.text)
+if response.usage_metadata() is None:
+    raise RuntimeError("Missing Usage Data")
+else:
+    print(f"User prompt: {content}")
+    print(f"Prompt tokens: {response.prompt_token_count}")
+    print(f"Response tokens: {response.candidates_token_count}")
+    print(response.text)
 def main():
     print("Hello from aiagent!")
 
