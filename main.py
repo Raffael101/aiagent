@@ -1,5 +1,6 @@
 import os
 import argparse
+from prompts import system_prompt
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -16,7 +17,11 @@ if api_key is None:
     raise RuntimeError("API key missing!")
 client = genai.Client(api_key=api_key)
 messages = [types.Content(role="user", parts=[types.Part(text=args.prompt)])]
-response = client.models.generate_content(model="gemini-2.5-flash", contents=messages)
+response = client.models.generate_content(
+    model="gemini-2.5-flash", 
+    contents=messages,
+    config=types.GenerateContentConfig(system_instruction=system_prompt), 
+    )
 
 if not response.usage_metadata:
     raise RuntimeError("Missing Usage Data")

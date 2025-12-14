@@ -4,11 +4,10 @@ def get_file_content(working_directory, file_path):
     work = os.path.abspath(working_directory)
     tar = os.path.abspath(os.path.join(working_directory,file_path))
     if not tar.startswith(work):
-        print('Error: Cannot read "{file_path}" as it is outside the permitted working directory')
-        return
+        return f'Error: Cannot read "{file_path}" as it is outside the permitted working directory'
     elif os.path.isfile(tar) == False:
-        print(f'Error: File not found or is not a regular file: "{file_path}"')
-        return
+        return f'Error: File not found or is not a regular file: "{file_path}"'
+        
     else:
         with open(tar, "rb") as f:
             limit = f.read(MAX_CHARS)
@@ -19,13 +18,10 @@ def get_file_content(working_directory, file_path):
         if reached == False:
             with open(tar, "r") as f:
                 file_content_string = f.read(MAX_CHARS)
-            print(file_content_string)
-            return
+            return file_content_string
         elif reached == True:
             with open(tar, "r") as f:
                 file_content_string = f.read(MAX_CHARS) +"\n"+'[...File "{file_path}" truncated at 10000 characters]'
-            print(file_content_string)
-            return
+            return file_content_string
         else:
-            print("Error: i dont know")
-            return
+            return "Error: i dont know"
