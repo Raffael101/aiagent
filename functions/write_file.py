@@ -1,4 +1,23 @@
 import os
+from google.genai import types
+
+schema_write_file = types.FunctionDeclaration(
+    name="write_file",
+    description="writes/creates file and contents in the specified directory, constrained to the working directory.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file path": types.Schema(
+                type=types.Type.STRING,
+                description="The path to the file to write/create, relative to the working directory.",
+            ),
+              "content": types.Schema(
+                type=types.Type.STRING,
+                description="The contents of the file to write/create."
+            ),
+        },
+    ),
+)
 
 def write_file(working_directory, file_path, content):
     work_dir = os.path.abspath(working_directory)
