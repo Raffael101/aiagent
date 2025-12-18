@@ -8,22 +8,35 @@ from functions.get_files_info import schema_get_files_info, get_files_info
 from functions.get_file_content import schema_get_file_content, get_file_content
 from functions.run_python_file import schema_run_python_file, run_python_file
 from functions.write_file import schema_write_file, write_file
+from functions.call_funtion import call_function
 
-def call_function(function_call_part, verbose=False):
-    if args.verbose == True:
-        print(f"Calling function: {function_call_part.name}({function_call_part.args})")
-    else:
-        print(f" - Calling function: {function_call_part.name}")
-    function_map = {
-        "get_files_info": get_files_info,
-        "get_file_content": get_file_content,
-        "run_python_file": run_python_file,
-        "write_file": write_file,    
-    }
-    f_args = dict(function_call_part.f_args)
-    f_args["./calender"] = WORKING_DIR
-    result = function_map[function_name](**f_args)
+def generate_content(client, messages, verbose, prompt):
+    response = client.models.generate_content(
+        model="gemini-2.5-flash", 
+        contents=messages,
+        config=types.GenerateContentConfig(
+            tools=[available_functions], system_instruction=system_prompt), 
+        )
+    tool_results = []
+    if not response.usage_metadata:
+        raise RuntimeError("Missing Usage Data")
+    if verbose:
+        print(f"User prompt: {prompt}")
+        print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
+        print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+    if not response.function_calls:
+        print(response.text)
+        return
+    for function_call_part in response.function_calls:
+        result = call_function(function_call_part, verbose=verbose)
+        if not  result.parts or not result.parts[0].function_response.response:
+            raise Exception("Error: No response found? i think")
 
+        tool_results.append(result.parts[0])
+        if verbose:
+            print(f"-> {result.parts[0].function_response.response}")
+
+    
 load_dotenv()
 parser = argparse.ArgumentParser(description="Chatbot")
 parser.add_argument("prompt", type=str, help="User prompt")
@@ -42,21 +55,6 @@ if api_key is None:
     raise RuntimeError("API key missing!")
 client = genai.Client(api_key=api_key)
 messages = [types.Content(role="user", parts=[types.Part(text=args.prompt)])]
-response = client.models.generate_content(
-    model="gemini-2.5-flash", 
-    contents=messages,
-    config=types.GenerateContentConfig(
-        tools=[available_functions], system_instruction=system_prompt), 
-    )
 
-if not response.usage_metadata:
-    raise RuntimeError("Missing Usage Data")
-elif args.verbose:
-    print(f"User prompt: {args.prompt}")
-    print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
-    print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
-elif response.function_calls != None:
-    for function_call_part in response.function_calls:
-        print(f"Calling function: {function_call_part.name}({function_call_part.args})")
-else:
-    print(response.text)
+generate_content(client, messages, args.verbose, args.prompt)
+
