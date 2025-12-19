@@ -37,5 +37,3 @@ def get_files_info(working_directory, directory="."):
         r_list.append(r_string)
     j_string = "\n".join(r_list)
     return dir+"\n"+j_string
-
-get_files_info("./calculator")
