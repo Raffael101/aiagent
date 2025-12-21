@@ -17,7 +17,7 @@ def generate_content(client, messages, verbose, prompt):
         config=types.GenerateContentConfig(
             tools=[available_functions], system_instruction=system_prompt), 
         )
-    tool_results = []
+    
     if not response.usage_metadata:
         raise RuntimeError("Missing Usage Data")
     if verbose:
@@ -27,6 +27,7 @@ def generate_content(client, messages, verbose, prompt):
     if not response.function_calls:
         print(response.text)
         return
+    tool_results = []
     for function_call_part in response.function_calls:
         result = call_function(function_call_part, verbose=verbose)
         if not  result.parts or not result.parts[0].function_response.response:
@@ -35,8 +36,13 @@ def generate_content(client, messages, verbose, prompt):
         tool_results.append(result.parts[0])
         if verbose:
             print(f"-> {result.parts[0].function_response.response}")
+    try:
+        for i in range(1,21):
+            messages.append(types.Content(role="user", parts=tool_results))
+            if     
+    except Exception as e:
+        print("Error:" )
 
-    
 load_dotenv()
 parser = argparse.ArgumentParser(description="Chatbot")
 parser.add_argument("prompt", type=str, help="User prompt")
