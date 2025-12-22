@@ -10,6 +10,9 @@ from functions.run_python_file import schema_run_python_file, run_python_file
 from functions.write_file import schema_write_file, write_file
 from functions.call_funtion import call_function
 
+def has_function_calls(list)
+
+
 def generate_content(client, messages, verbose, prompt):
     response = client.models.generate_content(
         model="gemini-2.5-flash", 
@@ -37,11 +40,14 @@ def generate_content(client, messages, verbose, prompt):
         if verbose:
             print(f"-> {result.parts[0].function_response.response}")
     try:
-        for i in range(1,21):
-            messages.append(types.Content(role="user", parts=tool_results))
-            if     
+        messages.append(types.Content(role="user", parts=tool_results))
+        for i in response.candidate:
+            if i.content.parts == response.function_call:
+                print("Final response: ")
+                print(response.text)
+                break
     except Exception as e:
-        print("Error:" )
+        print("Error:", e)
 
 load_dotenv()
 parser = argparse.ArgumentParser(description="Chatbot")
