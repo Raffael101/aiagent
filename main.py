@@ -10,7 +10,7 @@ from functions.run_python_file import schema_run_python_file, run_python_file
 from functions.write_file import schema_write_file, write_file
 from functions.call_funtion import call_function
 
-#day 3 of christmas break
+#day 5 of christmas break
 
 def generate_content(client, messages, verbose, prompt):
     response = client.models.generate_content(
