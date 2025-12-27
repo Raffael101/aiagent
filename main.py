@@ -1,3 +1,4 @@
+import sys
 import os
 import argparse
 from prompts import system_prompt
@@ -9,6 +10,7 @@ from functions.get_file_content import schema_get_file_content, get_file_content
 from functions.run_python_file import schema_run_python_file, run_python_file
 from functions.write_file import schema_write_file, write_file
 from functions.call_funtion import call_function
+from functions.config import MAX_ITERS
 
 #day 5 of christmas break
 
@@ -26,29 +28,21 @@ def generate_content(client, messages, verbose, prompt):
         print(f"User prompt: {prompt}")
         print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
         print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+    if response.candidates:
+        for candidate in response.candidates:
+            messages.append(candidate.content)
+    if not response.function_calls:
+        return response.text
     tool_results = []
     for function_call_part in response.function_calls:
         result = call_function(function_call_part, verbose=verbose)
-        if not  result.parts or not result.parts[0].function_response.response:
+        if not result.parts or not result.parts[0].function_response.response:
             raise Exception("Error: No response found? i think")
         tool_results.append(result.parts[0])
         if verbose:
             print(f"-> {result.parts[0].function_response.response}")
-    has_function_calls = False
-    try:
-        messages.append(types.Content(role="user", parts=tool_results))
-        for i in response.candidate:
-            if not response.function_calls:
-                return response.text
-            final = generate_content(client, messages, args.verbose, args.prompt)    
-            if final:
-                print("Final response: ")
-                print(response.text)
-                break
-
+    messages.append(types.Content(role="user", parts=tool_results))
   
-    except Exception as e:
-        print("Error:", e)
 
 load_dotenv()
 parser = argparse.ArgumentParser(description="Chatbot")
@@ -69,5 +63,17 @@ if api_key is None:
 client = genai.Client(api_key=api_key)
 messages = [types.Content(role="user", parts=[types.Part(text=args.prompt)])]
 
-generate_content(client, messages, args.verbose, args.prompt)
-
+iters = 0
+while True:
+    iters += 1
+    if iters > MAX_ITERS:
+        print(f"Maximum iterations ({MAX_ITERS}) reached.")
+        sys.exit(1)  # non‑zero means “error/aborted”
+    try:
+        final_response = generate_content(client, messages, args.verbose, args.prompt)
+        if final_response:
+            print("Final response:")
+            print(final_response)
+            break
+    except Exception as e:
+        print(f"Error in generate_content: {e}")
