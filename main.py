@@ -12,7 +12,7 @@ from functions.write_file import schema_write_file, write_file
 from functions.call_funtion import call_function
 from functions.config import MAX_ITERS
 
-#finished WOOOO
+#finished WOOOO??
 
 def generate_content(client, messages, verbose, prompt):
     response = client.models.generate_content(
